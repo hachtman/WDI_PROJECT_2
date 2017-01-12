@@ -1,0 +1,31 @@
+body {
+   background-color: #EFEFEF;
+   text-align: center;
+}
+
+nav {
+  .home-button {
+    float: left;
+  }
+  .nav-list {
+    list-style-type: none;
+
+    .nav-item {
+      float: right;
+      padding: 5px;
+      margin: 5px;
+    }
+
+  }
+}
+
+main {
+  .street-view-canvas {
+    height: 80vh;
+    width: 80%;
+  }
+  .minimap-canvas {
+    height: 40vh;
+    width: 40%
+  }
+}
