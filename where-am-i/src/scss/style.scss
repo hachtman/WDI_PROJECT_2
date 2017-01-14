@@ -1,6 +1,8 @@
 body {
    background-color: #EFEFEF;
    text-align: center;
+   margin: 20px;
+   padding: 10px;
 }
 
 nav {
@@ -23,9 +25,27 @@ main {
   .street-view-canvas {
     height: 80vh;
     width: 80%;
+    position: relative;
+    z-index: 8;
   }
   .minimap-canvas {
-    height: 40vh;
-    width: 40%
+    height: 20vh;
+    width: 20%;
+    position: absolute;
+    transition: all 200ms ease-in;
+    transform-origin: top left;
+    transform: scale(1);
   }
+  .minimap-canvas:hover {
+    height: 40vh;
+    width: 40%;
+    transition: all 200ms ease-in;
+    transform: scale(1.5);
+  }
+  // .minimap-holder {
+  //   position: absolute;
+  //   z-index: 10;
+  //   height: 80%;
+  //   width: 120vh;
+  // }
 }
