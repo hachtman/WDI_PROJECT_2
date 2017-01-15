@@ -35,12 +35,17 @@ main {
     transition: all 200ms ease-in;
     transform-origin: top left;
     transform: scale(1);
+    z-index: 10;
   }
   .minimap-canvas:hover {
-    height: 40vh;
-    width: 40%;
-    transition: all 200ms ease-in;
-    transform: scale(1.5);
+    // height: 40vh;
+    // width: 40%;
+    // transition: all 200ms ease-in;
+    // transform: scale(1.5);
+  }
+  .results-map-canvas {
+    height: 80vh;
+    width: 80%;
   }
   // .minimap-holder {
   //   position: absolute;

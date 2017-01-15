@@ -10,6 +10,8 @@ var google = google;
 App.streetView = {};
 //Create the minimap object.
 App.minimap = {};
+//Create the results map object.
+App.resultsMap = {};
 
 //The initiliase function.
 App.init = function () {
@@ -18,32 +20,93 @@ App.init = function () {
   this.apiKey = 'AIzaSyAS7TL1XkRnMQmOFFOuCMXZOQywapszR7A';
 
   this.$main = $('.main');
+
+  //Login/logout control flow.
   this.$registerBtn = $('.register');
   this.$loginBtn = $('.login');
+
+  this.$registerBtn.on('click', this.register.bind(this));
 
   this.gameType = 'world';
   //Coords.
   this.coords = {};
   this.guessCoords = {};
+  this.svMaxDist = 1000; //it's over 9000!!!!!!
+
 
   //Control flow
-  this.createStreetViewMap();
-  this.createMinimap();
-
-  this.findNearestPanorama(this.randomCoordsEurope());
+  // this.createStreetViewMap();
+  // this.createMinimap();
+  // this.findNearestPanorama(this.randomCoordsEurope());
 };
 
-//Calc radius.
+App.register = function (e) {
+  if (e) e.preventDefault();
+  this.$main.html('\n      <div class="logged-out register-form">\n        <h3>Register</h3>\n        <div class="row">\n          <div class="six columns"\n          <form method="post" action="/register">\n\n          </form>\n        </div>\n      </div>\n    ');
+};
+
+//Draw line btween two markers.
+App.drawLineBetweenMarkers = function () {
+  var resultsLine = new google.maps.PolyLine({
+    path: [new google.maps.LatLng(App.coords), new google.maps.LatLng(App.guessCoords)],
+    map: App.resultsMap,
+    strokeColor: '#FFEEFF',
+    strokeOpacity: 0.8,
+    strokeWeight: 8
+  });
+};
+
+//Show the results markers.
+App.createResultsMarkers = function () {
+  var userLatLng = new google.maps.LatLng(App.guessCoords.lat, App.guessCoords.lng);
+  var actLatLng = new google.maps.LatLng(App.coords.lat, App.coords.lng);
+  var userMarker = new google.maps.Marker({
+    position: userLatLng,
+    map: App.resultsMap,
+    animation: google.maps.Animation.DROP
+  });
+  var actualMarker = new google.maps.Marker({
+    position: actLatLng,
+    map: App.resultsMap,
+    animation: google.maps.Animation.DROP
+  });
+  console.log(userMarker, actualMarker);
+};
+
+//Create the results map.
+App.showResults = function () {
+  App.clearMaps();
+  var resultsMapCanvas = document.createElement('div');
+  resultsMapCanvas.setAttribute('id', 'results-map-canvas');
+  resultsMapCanvas.setAttribute('class', 'results-map-canvas');
+  App.$main.append(resultsMapCanvas);
+  var resultsMapOptions = {
+    center: new google.maps.LatLng(0, 0),
+    zoom: 1,
+    mapTypeControl: true,
+    streetViewcontrol: true,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  App.resultsMap = new google.maps.Map(resultsMapCanvas, resultsMapOptions);
+};
+
+App.clearMaps = function () {
+  $('main').empty();
+};
+
+//Calc radians.
 App.radians = function (coord) {
   return coord * Math.PI / 180;
 };
 
-App.haversineDist = function (coords, guessCoords) {
+//Calc the dist between two points.
+App.haversineDist = function () {
+  console.log('haversine fired');
   var earthRadius = 6378137;
-  var lng1 = coords.lng;
-  var lng2 = guessCoords.lng;
-  var lat1 = coords.lat;
-  var lat2 = guessCoords.lat;
+  var lng1 = App.coords.lng;
+  var lng2 = App.guessCoords.lng;
+  var lat1 = App.coords.lat;
+  var lat2 = App.guessCoords.lat;
 
   var x1 = lat2 - lat1;
   var dLat = App.radians(x1);
@@ -53,7 +116,8 @@ App.haversineDist = function (coords, guessCoords) {
   var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(App.radians(lat1)) * Math.cos(App.radians(lat2)) * Math.sin(dLng / 2) * Math.sin(dLng / 2);
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var dist = earthRadius * c;
-  return dist;
+  console.log(dist);
+  return dist; //In meters.
 };
 
 //Add click listener.
@@ -64,7 +128,7 @@ App.addMiniMapEventListener = function () {
     // App.guessCoords = 'latlng=' + lat +', ' + lng;
     App.guessCoords = { lat: lat, lng: lng };
     console.log(App.guessCoords);
-    App.haversineDist(App.coords, App.guessCoords);
+    App.haversineDist();
   });
 };
 
@@ -78,8 +142,9 @@ App.createMinimap = function () {
   var mmOptions = {
     center: new google.maps.LatLng(0, 0),
     zoom: 2,
-    mapTypeControl: false,
+    mapTypeControl: true,
     streetViewcontrol: false,
+    fullscreenControl: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
   App.minimap = new google.maps.Map(mmCanvas, mmOptions);
@@ -104,15 +169,11 @@ App.createStreetViewMap = function () {
   });
 };
 
-//Pull a random landmark.
-// https://maps.googleapis.com/maps/api/place/radarsearch/json?location=51.503186,-0.126446&radius=5000&type=museum&key=YOUR_API_KEY
-
 //Find the nearest panorama. Working, though not toally random. Bonus to fix using recursive function.
 App.findNearestPanorama = function (coords) {
   var svService = new google.maps.StreetViewService();
-  var svMaxDist = 10000000000000; //it's over 9000!!!!!!
   var latLng = new google.maps.LatLng(coords.lat, coords.lng);
-  svService.getPanorama({ location: latLng, radius: svMaxDist }, function (data, status) {
+  svService.getPanorama({ location: latLng, radius: App.svMaxDist }, function (data, status) {
     console.log(data);
     if (status === 'OK') {
       var panoLat = data.location.latLng.lat();
@@ -120,7 +181,9 @@ App.findNearestPanorama = function (coords) {
       App.coords = { lat: panoLat, lng: panoLng };
       App.setPosition();
     } else {
-      return 'find nearest broke.';
+      App.svMaxDist = App.svMaxDist * 1.2;
+      console.log(App.svMaxDist);
+      App.findNearestPanorama(App.randomCoordsEurope());
     }
   });
 };
@@ -133,10 +196,17 @@ App.randomCoordsEurope = function () {
   return coords;
 };
 
+App.randomCoordsUSA = function () {
+  var ranLat = App.getRandomBetweenRange(-125, 25);
+  var ranLng = App.getRandomBetweenRange(-66, 49);
+  var coords = { lat: ranLat, lng: ranLng };
+  return coords;
+};
+
 //Pick random coordinates.
 App.randomCoordsWorld = function () {
-  var ranLat = App.getRandomBetweenRange(-80, 100);
-  var ranLng = App.getRandomBetweenRange(-80, 100);
+  var ranLat = App.getRandomBetweenRange(-170, 170);
+  var ranLng = App.getRandomBetweenRange(-170, 170);
   var coords = { lat: ranLat, lng: ranLng };
   return coords;
 };
