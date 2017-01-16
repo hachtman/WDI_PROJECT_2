@@ -18,6 +18,7 @@ App.init = function() {
   this.apiKey       = 'AIzaSyAS7TL1XkRnMQmOFFOuCMXZOQywapszR7A';
 
   this.$main        = $('.main');
+  this.$body        = $('body');
   this.gameType     = '';
 
   //Login/logout control flow.
@@ -43,7 +44,7 @@ App.init = function() {
 };
 
 App.startOptions = function() {
-  App.$main.css({ 'height': '500px', 'vertical-align': 'middle'});
+  App.$main.css({ 'height': '440px', 'vertical-align': 'middle'});
   if (this.getToken()) {
     App.$main.html(`
       <div class="container start-options logged-in">
@@ -144,7 +145,7 @@ App.showResults = function() {
   App.$main.append(resultsMapCanvas);
 
   let position = { lat: 0, lng: 0 };
-  let zoom     = 1;
+  let zoom     = 2;
   if (App.gameType === 'london') {
     position = { lat: 51.50194, lng: -0.1378 };
     zoom = 8;
@@ -166,14 +167,18 @@ App.showResults = function() {
 App.clearMaps = function() {
   $('main').empty();
 };
-
 //Check Score
 App.showScore = function() {
+  $.ajax({
+
+  });
   App.$main.append(`
-    <div class="container">
+    <div class="container status-modal">
       <div class="scoreboard">
         <div class="row">
-          <h3>
+          <h3>status</h3>
+        </div>
+        <div class="row"
         </div>
       </div>
     </div>
@@ -235,7 +240,7 @@ App.addMiniMapEventListener = function() {
 App.createMinimap = function() {
   const mmHolder = document.createElement('div');
   mmHolder.setAttribute('class', 'minimap-holder');
-  App.$main.append(mmHolder);
+  $('#street-view-canvas').append(mmHolder);
   const mmCanvas  = document.createElement('div');
   mmCanvas.setAttribute('id', 'minimap-canvas');
   mmCanvas.setAttribute('class', 'minimap-canvas');
@@ -254,7 +259,7 @@ App.createMinimap = function() {
   const mmOptions = {
     center: new google.maps.LatLng(position),
     zoom: zoom,
-    mapTypeControl: true,
+    mapTypeControl: false,
     streetViewcontrol: false,
     fullscreenControl: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -340,6 +345,9 @@ App.getRandomBetweenRange = function(min, max) {
 
 App.closeModals = function() {
   App.$main.empty();
+  // if (App.$body.classList.contains('dim')){
+  //   App.$body.toggleClass('dim');
+  // }
   App.startOptions();
 };
 
@@ -353,12 +361,14 @@ App.loggedinState = function() {
 App.loggedOutState = function() {
   $('.logged-in').hide();
   $('.logged-out').show();
+  App.startOptions();
 };
 
 App.logout = function(e) {
   e.preventDefault();
   console.log('LoggedOut');
   this.removeToken();
+  this.clearMaps();
   this.loggedOutState();
 };
 
@@ -384,18 +394,20 @@ App.login = function(e) {
         </div>
         <div class="row">
           <div class="six columns">
-            <button class="submit" type="submit" value="Register">Login</button>
+            <button class="submit" type="submit" value="Login">Login</button>
           </div>
           <div class="six columns">
             <span class="close">
-              <button class="close type="button">Close</button>
+              <button class="close" type="button">Close</button>
             </span>
           </div>
         </div>
       </div>
   `);
+  // $('body').toggleClass('dim');
   $('.login-form').fadeIn('fast');
   $('.close').on('click', this.closeModals);
+
 };
 
 App.register = function(e) {
@@ -424,6 +436,12 @@ App.register = function(e) {
               <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">
             </div>
             <div class="row">
+              <div class="column">
+                <label for="hometown">Hometown (Optional)</label>
+                <input name="user[hometown]" class="u-full-width" typ="text" placeholder="hometown">
+              </div>
+            </div>
+            <div class="row">
             <div class="six columns">
               <button class="submit" type="submit" value="Register">Register</button>
             </div>
@@ -433,13 +451,12 @@ App.register = function(e) {
           </div>
         </form>
     `);
+  // $('body').toggleClass('dim');
   $('.register-form').fadeIn('fast');
   $('.close').on('click', this.closeModals);
 };
 
-
 App.handleForm = function(e) {
-  console.log('handle form');
   e.preventDefault();
   const url    = `${App.apiUrl}${$(this).attr('action')}`;
   const method = $(this).attr('method');
@@ -448,6 +465,7 @@ App.handleForm = function(e) {
   return App.ajaxRequest(url, method, data, data => {
     if (data.token) {
       App.setToken(data.token);
+      App.closeModals();
     }
   });
 };

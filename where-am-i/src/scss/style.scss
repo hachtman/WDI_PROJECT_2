@@ -10,6 +10,13 @@ body {
    margin: 20px;
    padding: 10px;
 }
+.dim {
+  background: linear-gradient(
+   rgba(0, 0, 0, 0.4),
+
+   rgba(0, 0, 0, 0.4)
+ ),
+}
 //Maps
 main {
     .street-view-canvas {
@@ -30,15 +37,19 @@ main {
     .minimap-canvas {
       height: 20vh;
       width: 20%;
-      margin-left: 10px;
+      padding: 10px;
+
       position: absolute;
       transition: all 200ms ease-in;
       transform-origin: top left;
       transform: scale(1);
       z-index: 10;
+
     }
     .minimap-canvas:hover {
       cursor: crosshair;
+      transition: all 200ms ease-in;
+      transform: scale(1.2);
     }
     .results-map-canvas {
       height: 80vh;

@@ -20,6 +20,7 @@ App.init = function () {
   this.apiKey = 'AIzaSyAS7TL1XkRnMQmOFFOuCMXZOQywapszR7A';
 
   this.$main = $('.main');
+  this.$body = $('body');
   this.gameType = '';
 
   //Login/logout control flow.
@@ -45,7 +46,7 @@ App.init = function () {
 };
 
 App.startOptions = function () {
-  App.$main.css({ 'height': '500px', 'vertical-align': 'middle' });
+  App.$main.css({ 'height': '440px', 'vertical-align': 'middle' });
   if (this.getToken()) {
     App.$main.html('\n      <div class="container start-options logged-in">\n        <div class="row">\n          <h1 class="title">want to get <strong>lost?</strong></h1>\n          <h3 class="subtitle">choose the world or narrow the scope</h3>\n        </div>\n        <div class="row button-row">\n          <div class="four columns">\n            <button class="the-world start-button">the world</button>\n          </div>\n          <div class="four columns">\n            <button class="london start-button">london</button>\n          </div>\n          <div class="four columns">\n            <button class="coming-soon start-button">coming soon</button>\n          </div>\n        </div>\n      </div>\n    ');
     $('.start-button').on('click', function () {
@@ -106,7 +107,7 @@ App.showResults = function () {
   App.$main.append(resultsMapCanvas);
 
   var position = { lat: 0, lng: 0 };
-  var zoom = 1;
+  var zoom = 2;
   if (App.gameType === 'london') {
     position = { lat: 51.50194, lng: -0.1378 };
     zoom = 8;
@@ -128,10 +129,10 @@ App.showResults = function () {
 App.clearMaps = function () {
   $('main').empty();
 };
-
 //Check Score
 App.showScore = function () {
-  App.$main.append('\n    <div class="container">\n      <div class="scoreboard">\n        <div class="row">\n          <h3>\n        </div>\n      </div>\n    </div>\n  ');
+  $.ajax({});
+  App.$main.append('\n    <div class="container status-modal">\n      <div class="scoreboard">\n        <div class="row">\n          <h3>status</h3>\n        </div>\n        <div class="row"\n        </div>\n      </div>\n    </div>\n  ');
 };
 
 App.calcScore = function (dist) {
@@ -189,7 +190,7 @@ App.addMiniMapEventListener = function () {
 App.createMinimap = function () {
   var mmHolder = document.createElement('div');
   mmHolder.setAttribute('class', 'minimap-holder');
-  App.$main.append(mmHolder);
+  $('#street-view-canvas').append(mmHolder);
   var mmCanvas = document.createElement('div');
   mmCanvas.setAttribute('id', 'minimap-canvas');
   mmCanvas.setAttribute('class', 'minimap-canvas');
@@ -208,7 +209,7 @@ App.createMinimap = function () {
   var mmOptions = {
     center: new google.maps.LatLng(position),
     zoom: zoom,
-    mapTypeControl: true,
+    mapTypeControl: false,
     streetViewcontrol: false,
     fullscreenControl: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
@@ -292,6 +293,9 @@ App.getRandomBetweenRange = function (min, max) {
 
 App.closeModals = function () {
   App.$main.empty();
+  // if (App.$body.classList.contains('dim')){
+  //   App.$body.toggleClass('dim');
+  // }
   App.startOptions();
 };
 
@@ -305,12 +309,14 @@ App.loggedinState = function () {
 App.loggedOutState = function () {
   $('.logged-in').hide();
   $('.logged-out').show();
+  App.startOptions();
 };
 
 App.logout = function (e) {
   e.preventDefault();
   console.log('LoggedOut');
   this.removeToken();
+  this.clearMaps();
   this.loggedOutState();
 };
 
@@ -322,7 +328,8 @@ App.login = function (e) {
   if (e) e.preventDefault();
   this.$main.html('<div class="logged-out login-form"></div>');
   $('.login-form').hide();
-  $('.login-form').append('\n    <h3>Login</h3>\n    <form method="post" action="/login">\n      <div class="container">\n        <div class="row">\n          <label for="email">Email</label>\n          <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n        </div>\n        <div class="row">\n          <label for="password">Password</label>\n          <input name="user[password]" class="u-full-width" type="password" placeholder="password" id="password">\n        </div>\n        <div class="row">\n          <div class="six columns">\n            <button class="submit" type="submit" value="Register">Login</button>\n          </div>\n          <div class="six columns">\n            <span class="close">\n              <button class="close type="button">Close</button>\n            </span>\n          </div>\n        </div>\n      </div>\n  ');
+  $('.login-form').append('\n    <h3>Login</h3>\n    <form method="post" action="/login">\n      <div class="container">\n        <div class="row">\n          <label for="email">Email</label>\n          <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n        </div>\n        <div class="row">\n          <label for="password">Password</label>\n          <input name="user[password]" class="u-full-width" type="password" placeholder="password" id="password">\n        </div>\n        <div class="row">\n          <div class="six columns">\n            <button class="submit" type="submit" value="Login">Login</button>\n          </div>\n          <div class="six columns">\n            <span class="close">\n              <button class="close" type="button">Close</button>\n            </span>\n          </div>\n        </div>\n      </div>\n  ');
+  // $('body').toggleClass('dim');
   $('.login-form').fadeIn('fast');
   $('.close').on('click', this.closeModals);
 };
@@ -331,13 +338,13 @@ App.register = function (e) {
   if (e) e.preventDefault();
   this.$main.html('<div class="logged-out register-form"></div>');
   $('.register-form').hide();
-  $('.register-form').append('\n        <h3>Register</h3>\n        <form method="post" action="/register">\n        <div class="container">\n          <div class="row">\n            <label for="username">Username</label>\n            <input name="user[username]" class="u-full-width" type="text" placeholder="username" id="username">\n          </div>\n          <div class="row">\n            <label for="email">Email</label>\n            <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n          </div>\n          <div class="row">\n            <div class="six columns">\n              <label for="password">Password</label>\n              <input name="user[password]" class="u-full-width" type="password" placeholder="email" id="password">\n            </div>\n            <div class="six columns">\n              <label for="passwordConfirmation">Password Confirmation</label>\n              <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">\n            </div>\n            <div class="row">\n            <div class="six columns">\n              <button class="submit" type="submit" value="Register">Register</button>\n            </div>\n            <div class="six columns">\n              <span class="close"><button type="button" class="close">close</button></close>\n            </div class="six columns">\n          </div>\n        </form>\n    ');
+  $('.register-form').append('\n        <h3>Register</h3>\n        <form method="post" action="/register">\n        <div class="container">\n          <div class="row">\n            <label for="username">Username</label>\n            <input name="user[username]" class="u-full-width" type="text" placeholder="username" id="username">\n          </div>\n          <div class="row">\n            <label for="email">Email</label>\n            <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n          </div>\n          <div class="row">\n            <div class="six columns">\n              <label for="password">Password</label>\n              <input name="user[password]" class="u-full-width" type="password" placeholder="email" id="password">\n            </div>\n            <div class="six columns">\n              <label for="passwordConfirmation">Password Confirmation</label>\n              <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">\n            </div>\n            <div class="row">\n              <div class="column">\n                <label for="hometown">Hometown (Optional)</label>\n                <input name="user[hometown]" class="u-full-width" typ="text" placeholder="hometown">\n              </div>\n            </div>\n            <div class="row">\n            <div class="six columns">\n              <button class="submit" type="submit" value="Register">Register</button>\n            </div>\n            <div class="six columns">\n              <span class="close"><button type="button" class="close">close</button></close>\n            </div class="six columns">\n          </div>\n        </form>\n    ');
+  // $('body').toggleClass('dim');
   $('.register-form').fadeIn('fast');
   $('.close').on('click', this.closeModals);
 };
 
 App.handleForm = function (e) {
-  console.log('handle form');
   e.preventDefault();
   var url = '' + App.apiUrl + $(this).attr('action');
   var method = $(this).attr('method');
@@ -346,6 +353,7 @@ App.handleForm = function (e) {
   return App.ajaxRequest(url, method, data, function (data) {
     if (data.token) {
       App.setToken(data.token);
+      App.closeModals();
     }
   });
 };

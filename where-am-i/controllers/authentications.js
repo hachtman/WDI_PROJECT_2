@@ -1,5 +1,4 @@
 // @flow
-
 const User   = require('../models/user');
 const jwt    = require('jsonwebtoken');
 const config = require('../config/config');
@@ -21,8 +20,8 @@ function authRegister(req, res) {
 
 function authLogin(req, res) {
   console.log('auth reg fired');
-  console.log(req.body);
-  User.findOne({ email: req.body.email }, (err, user) => {
+  console.log(req.body.user.email);
+  User.findOne({ email: req.body.user.email }, (err, user) => {
     console.log(user, err);
     if (err) return res.status(500).json({ message: 'auth login is broken' });
 

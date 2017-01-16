@@ -8,7 +8,9 @@ const userSchema = new mongoose.Schema({
   email: { type: String, unique: true, required: true },
   imagesrc: { type: String, trim: true },
   hometown: { type: String },
-  passwordHash: { type: String, required: true }
+  passwordHash: { type: String, required: true },
+  highScore: { type: Number },
+  sessionlength: {type: String}
 });
 
 userSchema.virtual('password').set(setPassword);
