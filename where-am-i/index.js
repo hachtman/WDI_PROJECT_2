@@ -26,7 +26,8 @@ app.use(cors());
 
 
 //jwt
-app.use('/api', jwt({ secret: config.secret }).unless({
+app.use('/api', jwt({ secret: config.secret })
+.unless({
   path: [
     { url: '/api/register', methods: ['POST'] },
     { url: '/api/login', methods: ['POST'] }

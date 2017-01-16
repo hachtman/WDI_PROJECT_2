@@ -5,9 +5,8 @@ const jwt    = require('jsonwebtoken');
 const config = require('../config/config');
 
 function authRegister(req, res) {
-  console.log('ping');
   User.create(req.body.user, (err, user) => {
-    console.log(err);
+    console.log('ping', err);
     if (err) return res.status(500).json({ message: 'auth register broken' });
 
     const token = jwt.sign(user._id, config.secret, { expiresIn: 60*60*24 });
@@ -21,6 +20,7 @@ function authRegister(req, res) {
 }
 
 function authLogin(req, res) {
+  console.log('auth reg fired');
   console.log(req.body);
   User.findOne({ email: req.body.email }, (err, user) => {
     console.log(user, err);
@@ -37,6 +37,6 @@ function authLogin(req, res) {
 }
 
 module.exports = {
-  authReg: authRegister,
-  authLog: authLogin
+  reg: authRegister,
+  log: authLogin
 };

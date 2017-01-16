@@ -1,0 +1,28 @@
+nav {
+  // max-width: 780px;
+  text-align: center;
+  margin: 0 auto;
+  .home-button {
+    float: left;
+    font-size: 0.9em;
+  }
+
+  .nav-list {
+    list-style-type: none;
+
+    .nav-item {
+      float: right;
+      padding: 5px;
+      margin: 5px;
+    }
+  }
+  .multi-purpose {
+    margin-right: 0px;
+    font-size: 1.4em;
+  }
+  .topbar-anchor {
+    text-decoration: none;
+    color: #222;
+    font-size: 1.3em;
+  }
+}

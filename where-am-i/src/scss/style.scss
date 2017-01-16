@@ -1,56 +1,53 @@
+@import 'header';
+@import 'modals';
+@import 'ux-features';
+
+
 body {
-   background-color: #EFEFEF;
+   background-color: #FDFDFF;
+   color: #444;
    text-align: center;
    margin: 20px;
    padding: 10px;
 }
-
-nav {
-  .home-button {
-    float: left;
-  }
-  .nav-list {
-    list-style-type: none;
-
-    .nav-item {
-      float: right;
-      padding: 5px;
-      margin: 5px;
+//Maps
+main {
+    .street-view-canvas {
+      height: 80vh;
+      max-width: 960px;
+      position: relative;
+      margin: 0 auto;
     }
-
-  }
+    .minimap-holder {
+      height: 100%;
+      width: 100%;
+      position: relative;
+      overflow: hidden;
+      :hover {
+        cursor: crosshair;
+      }
+    }
+    .minimap-canvas {
+      height: 20vh;
+      width: 20%;
+      margin-left: 10px;
+      position: absolute;
+      transition: all 200ms ease-in;
+      transform-origin: top left;
+      transform: scale(1);
+      z-index: 10;
+    }
+    .minimap-canvas:hover {
+      cursor: crosshair;
+    }
+    .results-map-canvas {
+      height: 80vh;
+      max-width: 960%;
+      margin: 0 auto;
+    }
 }
 
-main {
-  .street-view-canvas {
-    height: 80vh;
-    width: 80%;
-    position: relative;
-    z-index: 8;
-  }
-  .minimap-canvas {
-    height: 20vh;
-    width: 20%;
-    position: absolute;
-    transition: all 200ms ease-in;
-    transform-origin: top left;
-    transform: scale(1);
-    z-index: 10;
-  }
-  .minimap-canvas:hover {
-    // height: 40vh;
-    // width: 40%;
-    // transition: all 200ms ease-in;
-    // transform: scale(1.5);
-  }
-  .results-map-canvas {
-    height: 80vh;
-    width: 80%;
-  }
-  // .minimap-holder {
-  //   position: absolute;
-  //   z-index: 10;
-  //   height: 80%;
-  //   width: 120vh;
-  // }
+//buttons
+.register-main {
+  font-size: 1.5em;
 }

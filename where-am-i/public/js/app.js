@@ -20,29 +20,52 @@ App.init = function () {
   this.apiKey = 'AIzaSyAS7TL1XkRnMQmOFFOuCMXZOQywapszR7A';
 
   this.$main = $('.main');
+  this.gameType = '';
 
   //Login/logout control flow.
   this.$registerBtn = $('.register');
+  this.$register = $('.register-form');
   this.$loginBtn = $('.login');
-
+  this.$logoutBtn = $('.logout');
   this.$registerBtn.on('click', this.register.bind(this));
+  this.$loginBtn.on('click', this.login.bind(this));
+  this.$logoutBtn.on('click', this.logout.bind(this));
+  $('body').on('submit', 'form', this.handleForm);
 
-  this.gameType = 'world';
   //Coords.
   this.coords = {};
   this.guessCoords = {};
   this.svMaxDist = 1000; //it's over 9000!!!!!!
-
-
-  //Control flow
-  // this.createStreetViewMap();
-  // this.createMinimap();
-  // this.findNearestPanorama(this.randomCoordsEurope());
+  if (this.getToken()) {
+    this.loggedinState();
+  } else {
+    this.loggedOutState();
+  }
+  this.startOptions();
 };
 
-App.register = function (e) {
-  if (e) e.preventDefault();
-  this.$main.html('\n      <div class="logged-out register-form">\n        <h3>Register</h3>\n        <div class="row">\n          <div class="six columns"\n          <form method="post" action="/register">\n\n          </form>\n        </div>\n      </div>\n    ');
+App.startOptions = function () {
+  App.$main.css({ 'height': '500px', 'vertical-align': 'middle' });
+  if (this.getToken()) {
+    App.$main.html('\n      <div class="container start-options logged-in">\n        <div class="row">\n          <h1 class="title">want to get <strong>lost?</strong></h1>\n          <h3 class="subtitle">choose the world or narrow the scope</h3>\n        </div>\n        <div class="row button-row">\n          <div class="four columns">\n            <button class="the-world start-button">the world</button>\n          </div>\n          <div class="four columns">\n            <button class="london start-button">london</button>\n          </div>\n          <div class="four columns">\n            <button class="coming-soon start-button">coming soon</button>\n          </div>\n        </div>\n      </div>\n    ');
+    $('.start-button').on('click', function () {
+      if (this.classList.contains('the-world')) {
+        $('body').css({ 'background-image': 'none' });
+        App.$main.html('');
+        App.createStreetViewMap();
+        App.createMinimap();
+        App.findNearestPanorama(App.randomCoordsEurope());
+      } else if (this.classList.contains('london')) {
+        App.gameType = 'london';
+        App.$main.html('');
+        App.createStreetViewMap();
+        App.createMinimap();
+        App.findNearestPanorama(App.randomCoordsLondon());
+      }
+    });
+  } else {
+    App.$main.html('\n    <div class="container start-options logged-out">\n      <div class="row">\n        <h1 class="title">want to get <strong>lost?</strong></h1>\n        <h3 class="subtitle">sign up below to play</h3>\n      </div>\n      <div class="row">\n        <div class="four columns">\n          <button class="about">about</button>\n        </div>\n        <div class="four columns">\n          <button class="the-code">the code</button>\n        </div>\n        <div class="four columns">\n          <button class="coming-soon start-button">ways to play</button>\n        </div>\n      </div>\n    </div>\n  ');
+  }
 };
 
 //Draw line btween two markers.
@@ -71,6 +94,7 @@ App.createResultsMarkers = function () {
     animation: google.maps.Animation.DROP
   });
   console.log(userMarker, actualMarker);
+  App.showScore();
 };
 
 //Create the results map.
@@ -80,18 +104,48 @@ App.showResults = function () {
   resultsMapCanvas.setAttribute('id', 'results-map-canvas');
   resultsMapCanvas.setAttribute('class', 'results-map-canvas');
   App.$main.append(resultsMapCanvas);
+
+  var position = { lat: 0, lng: 0 };
+  var zoom = 1;
+  if (App.gameType === 'london') {
+    position = { lat: 51.50194, lng: -0.1378 };
+    zoom = 8;
+  } else {
+    position = { lat: 0, lng: 0 };
+  }
+
   var resultsMapOptions = {
-    center: new google.maps.LatLng(0, 0),
-    zoom: 1,
+    center: new google.maps.LatLng(position),
+    zoom: zoom,
     mapTypeControl: true,
     streetViewcontrol: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
   App.resultsMap = new google.maps.Map(resultsMapCanvas, resultsMapOptions);
+  App.createResultsMarkers();
 };
 
 App.clearMaps = function () {
   $('main').empty();
+};
+
+//Check Score
+App.showScore = function () {
+  App.$main.append('\n    <div class="container">\n      <div class="scoreboard">\n        <div class="row">\n          <h3>\n        </div>\n      </div>\n    </div>\n  ');
+};
+
+App.calcScore = function (dist) {
+  console.log('ping');
+  var max = 0;
+  if (App.gameType === 'london') {
+    max = 14662;
+  } else {
+    max = 20004146;
+  }
+  var power = 4;
+  var constant = 100 / Math.pow(max, power);
+  var score = parseFloat(constant * Math.pow(max - dist, power));
+  App.userScore = score;
 };
 
 //Calc radians.
@@ -128,20 +182,32 @@ App.addMiniMapEventListener = function () {
     // App.guessCoords = 'latlng=' + lat +', ' + lng;
     App.guessCoords = { lat: lat, lng: lng };
     console.log(App.guessCoords);
-    App.haversineDist();
+    App.calcScore(App.haversineDist());
   });
 };
 
 App.createMinimap = function () {
+  var mmHolder = document.createElement('div');
+  mmHolder.setAttribute('class', 'minimap-holder');
+  App.$main.append(mmHolder);
   var mmCanvas = document.createElement('div');
   mmCanvas.setAttribute('id', 'minimap-canvas');
   mmCanvas.setAttribute('class', 'minimap-canvas');
-  // $('.minimap-holder').append(mmCanvas);
-  App.$main.append(mmCanvas);
+  $('.minimap-holder').append(mmCanvas);
+  // App.$main.append(mmCanvas);
   console.log(mmCanvas);
+
+  var position = { lat: 0, lng: 0 };
+  var zoom = 1;
+  if (App.gameType === 'london') {
+    position = { lat: 51.50194, lng: -0.1378 };
+    zoom = 8;
+  } else {
+    position = { lat: 0, lng: 0 };
+  }
   var mmOptions = {
-    center: new google.maps.LatLng(0, 0),
-    zoom: 2,
+    center: new google.maps.LatLng(position),
+    zoom: zoom,
     mapTypeControl: true,
     streetViewcontrol: false,
     fullscreenControl: true,
@@ -150,7 +216,6 @@ App.createMinimap = function () {
   App.minimap = new google.maps.Map(mmCanvas, mmOptions);
   App.addMiniMapEventListener();
 };
-
 //Render the street view map.
 App.createStreetViewMap = function () {
   var svCanvas = document.createElement('div');
@@ -161,6 +226,7 @@ App.createStreetViewMap = function () {
     position: { lat: 0, lng: 0 },
     addressControl: false,
     linksControl: false,
+    showRoadLabels: false,
     pov: {
       heading: 30,
       pitch: -10,
@@ -168,42 +234,46 @@ App.createStreetViewMap = function () {
     }
   });
 };
-
 //Find the nearest panorama. Working, though not toally random. Bonus to fix using recursive function.
 App.findNearestPanorama = function (coords) {
   var svService = new google.maps.StreetViewService();
   var latLng = new google.maps.LatLng(coords.lat, coords.lng);
   svService.getPanorama({ location: latLng, radius: App.svMaxDist }, function (data, status) {
     console.log(data);
+
     if (status === 'OK') {
+      // if(data.copyright.substr(data.copyright.length - 6) !== 'Google'){};
       var panoLat = data.location.latLng.lat();
       var panoLng = data.location.latLng.lng();
       App.coords = { lat: panoLat, lng: panoLng };
       App.setPosition();
+      return true;
     } else {
-      App.svMaxDist = App.svMaxDist * 1.2;
-      console.log(App.svMaxDist);
-      App.findNearestPanorama(App.randomCoordsEurope());
+      if (App.gameType === 'london') {
+        console.log('london fired');
+        App.svMaxDist = App.svMaxDist * 1.1;
+        App.findNearestPanorama(App.randomCoordsLondon(), 'london');
+      } else {
+        App.svMaxDist = App.svMaxDist * 1.5;
+        App.findNearestPanorama(App.randomCoordsEurope());
+      }
+      return true;
     }
   });
 };
-
-//Pick random Europe.
+//Pick random.
 App.randomCoordsEurope = function () {
   var ranLat = App.getRandomBetweenRange(-10, 70);
   var ranLng = App.getRandomBetweenRange(30, 70);
   var coords = { lat: ranLat, lng: ranLng };
   return coords;
 };
-
-App.randomCoordsUSA = function () {
-  var ranLat = App.getRandomBetweenRange(-125, 25);
-  var ranLng = App.getRandomBetweenRange(-66, 49);
+App.randomCoordsLondon = function () {
+  var ranLat = App.getRandomBetweenRange(51.29, 51.69);
+  var ranLng = App.getRandomBetweenRange(-0.55, 0.1);
   var coords = { lat: ranLat, lng: ranLng };
   return coords;
 };
-
-//Pick random coordinates.
 App.randomCoordsWorld = function () {
   var ranLat = App.getRandomBetweenRange(-170, 170);
   var ranLng = App.getRandomBetweenRange(-170, 170);
@@ -214,11 +284,93 @@ App.randomCoordsWorld = function () {
 App.setPosition = function () {
   App.streetView.setPosition(App.coords);
 };
-
 //GEN FUNCTIONS
 //Pull random between range quick.
 App.getRandomBetweenRange = function (min, max) {
   return Math.random() * (max - min) + min;
+};
+
+App.closeModals = function () {
+  App.$main.empty();
+  App.startOptions();
+};
+
+//Login/logout
+App.loggedinState = function () {
+  $('.logged-in').show();
+  $('.logged-out').hide();
+  App.startOptions();
+};
+
+App.loggedOutState = function () {
+  $('.logged-in').hide();
+  $('.logged-out').show();
+};
+
+App.logout = function (e) {
+  e.preventDefault();
+  console.log('LoggedOut');
+  this.removeToken();
+  this.loggedOutState();
+};
+
+App.removeToken = function () {
+  return window.localStorage.clear();
+};
+
+App.login = function (e) {
+  if (e) e.preventDefault();
+  this.$main.html('<div class="logged-out login-form"></div>');
+  $('.login-form').hide();
+  $('.login-form').append('\n    <h3>Login</h3>\n    <form method="post" action="/login">\n      <div class="container">\n        <div class="row">\n          <label for="email">Email</label>\n          <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n        </div>\n        <div class="row">\n          <label for="password">Password</label>\n          <input name="user[password]" class="u-full-width" type="password" placeholder="password" id="password">\n        </div>\n        <div class="row">\n          <div class="six columns">\n            <button class="submit" type="submit" value="Register">Login</button>\n          </div>\n          <div class="six columns">\n            <span class="close">\n              <button class="close type="button">Close</button>\n            </span>\n          </div>\n        </div>\n      </div>\n  ');
+  $('.login-form').fadeIn('fast');
+  $('.close').on('click', this.closeModals);
+};
+
+App.register = function (e) {
+  if (e) e.preventDefault();
+  this.$main.html('<div class="logged-out register-form"></div>');
+  $('.register-form').hide();
+  $('.register-form').append('\n        <h3>Register</h3>\n        <form method="post" action="/register">\n        <div class="container">\n          <div class="row">\n            <label for="username">Username</label>\n            <input name="user[username]" class="u-full-width" type="text" placeholder="username" id="username">\n          </div>\n          <div class="row">\n            <label for="email">Email</label>\n            <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n          </div>\n          <div class="row">\n            <div class="six columns">\n              <label for="password">Password</label>\n              <input name="user[password]" class="u-full-width" type="password" placeholder="email" id="password">\n            </div>\n            <div class="six columns">\n              <label for="passwordConfirmation">Password Confirmation</label>\n              <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">\n            </div>\n            <div class="row">\n            <div class="six columns">\n              <button class="submit" type="submit" value="Register">Register</button>\n            </div>\n            <div class="six columns">\n              <span class="close"><button type="button" class="close">close</button></close>\n            </div class="six columns">\n          </div>\n        </form>\n    ');
+  $('.register-form').fadeIn('fast');
+  $('.close').on('click', this.closeModals);
+};
+
+App.handleForm = function (e) {
+  console.log('handle form');
+  e.preventDefault();
+  var url = '' + App.apiUrl + $(this).attr('action');
+  var method = $(this).attr('method');
+  var data = $(this).serialize();
+  console.log(url, method, data);
+  return App.ajaxRequest(url, method, data, function (data) {
+    if (data.token) {
+      App.setToken(data.token);
+    }
+  });
+};
+
+App.ajaxRequest = function (url, method, data, callback) {
+  return $.ajax({
+    url: url,
+    method: method,
+    data: data,
+    beforeSend: this.setRequestHeader.bind(this)
+  }).done(callback).fail(function (data) {
+    console.log(data);
+  });
+};
+
+App.setRequestHeader = function (xhr) {
+  return xhr.setRequestHeader('Authorization', 'Bearer ' + this.getToken());
+};
+
+App.setToken = function (token) {
+  return window.localStorage.setItem('token', token);
+};
+
+App.getToken = function () {
+  return window.localStorage.getItem('token');
 };
 
 $(App.init.bind(App));

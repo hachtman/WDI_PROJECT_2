@@ -12,9 +12,9 @@ router.route('/users').get(users.index);
 //Will run the user show function when a get http request is made to '/users:id'
 router.route('/users/:id').get(users.show);
 
-router.route('/register').post(auth.authReg);
+router.route('/register').post(auth.reg);
 
-router.route('/login').post(auth.authLog);
+router.route('/login').post(auth.log);
 
 
 
