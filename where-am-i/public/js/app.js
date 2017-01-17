@@ -32,6 +32,7 @@ App.init = function () {
   this.$logoutBtn = $('.logout');
   this.$status = $('.status');
   this.$usersIndex = $('.users-index');
+  this.$modal = $('.status-modal');
 
   //Event listener
   this.$registerBtn.on('click', this.register.bind(this));
@@ -41,6 +42,9 @@ App.init = function () {
   this.$status.on('click', this.showStatus.bind(this));
 
   $('body').on('submit', 'form', this.handleForm);
+
+  //LocalStorage Variables
+
 
   //Coords.
   this.coords = {};
@@ -59,7 +63,6 @@ App.checkLoggedIn = function () {
     this.loggedOutState();
   }
 };
-
 //User FUNCTIONS
 App.profile = function (e) {
   if (e) e.preventDefault();
@@ -123,9 +126,58 @@ App.createResultsMarkers = function () {
     animation: google.maps.Animation.DROP
   });
   console.log(userMarker, actualMarker);
-  App.showScore();
 };
 //Create the results map.
+
+App.clearMaps = function () {
+  $('main').empty();
+};
+
+App.createStatus = function () {
+  App.$modal.empty();
+  // this.$body.append('<div class="logged-in status-modal"></div>');
+  App.$modal.hide();
+  App.$modal.append('\n    <div class="container">\n\n      <div class="row">\n        <div class="eight columns">\n          <h3>status: <strong>' + localStorage.username + '</strong></h3>\n        </div>\n        <div class="four columns">\n          <button class="scoring-info" type="button">i\'m stuck</button>\n        </div>\n      </div>\n\n      <div class="row last-score">\n        <div class="six columns">\n          <span class="status-info last-score">\n            <p class="info-text">last score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info last-score">\n            <p class="info-text" id="lastScore"></p>\n          </span>\n        </div>\n      </div>\n      <div class="row current-attempts">\n        <div class="six columns">\n          <span class="status-info current-attempts">\n            <p class="info-text">current attempts:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info current-attempts">\n            <p class="info-text" id="currentAttempts"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row average-score">\n        <div class="six columns">\n          <span class="status-info average-score">\n            <p class="info-text">average score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info average-score">\n            <p class="info-text" id="averageScore"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row high-score">\n        <div class="six columns">\n          <span class="status-info high-score">\n            <p class="info-text">high score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info high-score">\n            <p class="info-text" id="highScore"></p>\n          </span>\n        </div>\n      </div>\n\n\n      <div class="row status-button-row">\n        <div class="six columns">\n          <button class="close-status" type="button">close</button>\n        </div>\n        <div class="six columns">\n          <button class="next-game">next round</button>\n        </div>\n      </div>\n    </div>\n  ');
+};
+
+App.showStatus = function () {
+  var av = JSON.parse(localStorage.averageScore).toFixed(2);
+  var last = JSON.parse(localStorage.lastScore).toFixed(2);
+  var high = JSON.parse(localStorage.highScore);
+
+  $('#currentAttempts').html('' + localStorage.currentAttempts);
+  $('#lastScore').html(last);
+  $('#averageScore').html('' + av);
+  $('#highScore').html('' + high);
+  App.$modal.fadeIn('fast');
+  $('.close-status').on('click', function () {
+    App.$modal.fadeOut('fast');
+  });
+};
+
+App.nextGame = function () {
+  App.next.hide();
+  if (App.gameType === '') {
+    $('body').css({ 'background-image': 'none' });
+    App.$main.html('');
+    App.createStreetViewMap();
+    App.createMinimap();
+    App.findNearestPanorama(App.randomCoordsEurope());
+  } else {
+    App.gameType = 'london';
+    App.$main.html('');
+    App.createStreetViewMap();
+    App.createMinimap();
+    App.findNearestPanorama(App.randomCoordsLondon());
+  }
+};
+
+App.updateStatus = function () {
+  App.next = $('.next-game');
+  App.next.show();
+  App.next.on('click', App.nextGame);
+};
+
 App.showResults = function () {
   App.clearMaps();
   var resultsMapCanvas = document.createElement('div');
@@ -151,29 +203,26 @@ App.showResults = function () {
   };
   App.resultsMap = new google.maps.Map(resultsMapCanvas, resultsMapOptions);
   App.createResultsMarkers();
+  App.averageScore();
 };
 
-App.clearMaps = function () {
-  $('main').empty();
-};
-
-App.createStatus = function () {
-  this.$body.append('<div class="logged-in status-modal"></div>');
-  App.$modal = $('.status-modal');
-  App.$modal.hide();
-  App.$modal.append('\n    <div class="container">\n      <div class="row">\n        <h3>status: <strong>' + localStorage.username + '</strong></h3>\n      </div>\n      <div class="row session-info">\n        <p class="status-info current-attempts">' + localStorage.currentAttempts + '</p>\n        <p class="status-info average-score">' + localStorage.averageScore + '</p>\n        <p class="status-info last-score">' + localStorage.lastScore + '</p>\n        <button type="button" class="switch-info">Switch score display</button>\n      </div>\n      <div class="row persistent-info">\n        <p class="status-info">Session length</p>\n        <p class="status-info high-score">' + localStorage.highScore + '</p>\n      </div>\n      <div class="row">\n        <button class="close-status" type="button">close</button>\n      </div>\n    </div>\n  ');
-};
-
-App.showStatus = function () {
-  App.$modal.fadeToggle('fast');
-  $('.close-status').on('click', function () {
-    App.$modal.fadeOut('fast');
-  });
+App.averageScore = function () {
+  var user = JSON.parse(localStorage.userScore);
+  var sum = user.reduce(function (a, b) {
+    return a + b;
+  }, 0);
+  var mean = sum / user.length;
+  console.log(mean, 'before save');
+  localStorage.averageScore = JSON.stringify(mean);
+  App.updateStatus();
 };
 
 App.calcScore = function (dist) {
   if (App.gameType === 'london' && dist > 55000) {
-    App.userScore = 0;
+    var _score = 0;
+    App.userScore.push(_score);
+    localStorage.userScore = JSON.stringify(App.userScore);
+    App.showResults();
     return true;
   }
   var max = 0;
@@ -186,9 +235,10 @@ App.calcScore = function (dist) {
   var power = 4;
   var constant = 100 / Math.pow(max, power);
   var score = parseFloat(constant * Math.pow(max - dist, power));
-  console.log(max, score, dist);
-
   App.userScore.push(score);
+  localStorage.lastScore = JSON.stringify(score);
+  localStorage.userScore = JSON.stringify(App.userScore);
+  App.showResults();
 };
 
 //Calc radians.
@@ -391,6 +441,7 @@ App.writeSessionVars = function (data) {
   console.log('session vars written');
   localStorage.username = data.user.username;
   localStorage.currentUser = data.user.email;
+  console.log(data.user.highScore);
   if (data.user.highScore === 'undefined') {
     localStorage.userHighScore = 0;
   } else {
@@ -402,6 +453,8 @@ App.writeSessionVars = function (data) {
     localStorage.hometown = data.user.hometown;
   }
   localStorage.averageScore = '0';
+  localStorage.lastScore = '0';
+  localStorage.currentAttempts = '0';
 };
 
 App.handleForm = function (e) {
@@ -417,6 +470,7 @@ App.handleForm = function (e) {
       App.closeModals();
       App.checkLoggedIn();
       App.writeSessionVars(data);
+      App.createStatus();
     }
   });
 };
