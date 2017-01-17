@@ -23,26 +23,52 @@ App.init = function () {
   this.$body = $('body');
   this.gameType = '';
 
+  this.userScore = [];
+
   //Login/logout control flow.
   this.$registerBtn = $('.register');
   this.$register = $('.register-form');
   this.$loginBtn = $('.login');
   this.$logoutBtn = $('.logout');
+  this.$status = $('.status');
+  this.$usersIndex = $('.users-index');
+
+  //Event listener
   this.$registerBtn.on('click', this.register.bind(this));
   this.$loginBtn.on('click', this.login.bind(this));
   this.$logoutBtn.on('click', this.logout.bind(this));
+  // this.$usersIndex.on('click', this.profile.bind(this));
+  this.$status.on('click', this.showStatus.bind(this));
+
   $('body').on('submit', 'form', this.handleForm);
 
   //Coords.
   this.coords = {};
   this.guessCoords = {};
   this.svMaxDist = 1000; //it's over 9000!!!!!!
+  this.checkLoggedIn();
+
+  this.startOptions();
+  this.createStatus();
+};
+
+App.checkLoggedIn = function () {
   if (this.getToken()) {
     this.loggedinState();
   } else {
     this.loggedOutState();
   }
-  this.startOptions();
+};
+
+//User FUNCTIONS
+App.profile = function (e) {
+  if (e) e.preventDefault();
+  var url = this.apiUrl + '/users';
+
+  return this.ajaxRequest(url, 'get', null, function (data) {
+    console.log(data);
+    App.$main.prepend('\n      <div class="container index-modal modal">\n        <div class="row">\n          <h3>who\'s been playing</h3>\n        </div>\n      </div>\n      ');
+  });
 };
 
 App.startOptions = function () {
@@ -87,17 +113,18 @@ App.createResultsMarkers = function () {
   var userMarker = new google.maps.Marker({
     position: userLatLng,
     map: App.resultsMap,
+    label: 'User',
     animation: google.maps.Animation.DROP
   });
   var actualMarker = new google.maps.Marker({
     position: actLatLng,
     map: App.resultsMap,
+    label: 'Actual',
     animation: google.maps.Animation.DROP
   });
   console.log(userMarker, actualMarker);
   App.showScore();
 };
-
 //Create the results map.
 App.showResults = function () {
   App.clearMaps();
@@ -129,24 +156,39 @@ App.showResults = function () {
 App.clearMaps = function () {
   $('main').empty();
 };
-//Check Score
-App.showScore = function () {
-  $.ajax({});
-  App.$main.append('\n    <div class="container status-modal">\n      <div class="scoreboard">\n        <div class="row">\n          <h3>status</h3>\n        </div>\n        <div class="row"\n        </div>\n      </div>\n    </div>\n  ');
+
+App.createStatus = function () {
+  this.$body.append('<div class="logged-in status-modal"></div>');
+  App.$modal = $('.status-modal');
+  App.$modal.hide();
+  App.$modal.append('\n    <div class="container">\n      <div class="row">\n        <h3>status: <strong>' + localStorage.username + '</strong></h3>\n      </div>\n      <div class="row session-info">\n        <p class="status-info current-attempts">' + localStorage.currentAttempts + '</p>\n        <p class="status-info average-score">' + localStorage.averageScore + '</p>\n        <p class="status-info last-score">' + localStorage.lastScore + '</p>\n        <button type="button" class="switch-info">Switch score display</button>\n      </div>\n      <div class="row persistent-info">\n        <p class="status-info">Session length</p>\n        <p class="status-info high-score">' + localStorage.highScore + '</p>\n      </div>\n      <div class="row">\n        <button class="close-status" type="button">close</button>\n      </div>\n    </div>\n  ');
+};
+
+App.showStatus = function () {
+  App.$modal.fadeToggle('fast');
+  $('.close-status').on('click', function () {
+    App.$modal.fadeOut('fast');
+  });
 };
 
 App.calcScore = function (dist) {
-  console.log('ping');
+  if (App.gameType === 'london' && dist > 55000) {
+    App.userScore = 0;
+    return true;
+  }
   var max = 0;
+  console.log(App.gameType);
   if (App.gameType === 'london') {
-    max = 14662;
+    max = 150000;
   } else {
     max = 20004146;
   }
   var power = 4;
   var constant = 100 / Math.pow(max, power);
   var score = parseFloat(constant * Math.pow(max - dist, power));
-  App.userScore = score;
+  console.log(max, score, dist);
+
+  App.userScore.push(score);
 };
 
 //Calc radians.
@@ -187,6 +229,7 @@ App.addMiniMapEventListener = function () {
   });
 };
 
+//Create the minimap.
 App.createMinimap = function () {
   var mmHolder = document.createElement('div');
   mmHolder.setAttribute('class', 'minimap-holder');
@@ -271,7 +314,7 @@ App.randomCoordsEurope = function () {
 };
 App.randomCoordsLondon = function () {
   var ranLat = App.getRandomBetweenRange(51.29, 51.69);
-  var ranLng = App.getRandomBetweenRange(-0.55, 0.1);
+  var ranLng = App.getRandomBetweenRange(-0.52, 0.1);
   var coords = { lat: ranLat, lng: ranLng };
   return coords;
 };
@@ -344,16 +387,36 @@ App.register = function (e) {
   $('.close').on('click', this.closeModals);
 };
 
+App.writeSessionVars = function (data) {
+  console.log('session vars written');
+  localStorage.username = data.user.username;
+  localStorage.currentUser = data.user.email;
+  if (data.user.highScore === 'undefined') {
+    localStorage.userHighScore = 0;
+  } else {
+    localStorage.userHighScore = data.user.highScore;
+  }
+  if (data.user.hometown === 'undefined') {
+    localStorage.hometown = 'Knoxville, Tennessee';
+  } else {
+    localStorage.hometown = data.user.hometown;
+  }
+  localStorage.averageScore = '0';
+};
+
 App.handleForm = function (e) {
   e.preventDefault();
   var url = '' + App.apiUrl + $(this).attr('action');
   var method = $(this).attr('method');
   var data = $(this).serialize();
   console.log(url, method, data);
+
   return App.ajaxRequest(url, method, data, function (data) {
     if (data.token) {
       App.setToken(data.token);
       App.closeModals();
+      App.checkLoggedIn();
+      App.writeSessionVars(data);
     }
   });
 };

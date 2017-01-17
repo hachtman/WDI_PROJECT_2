@@ -9,6 +9,7 @@ function usersIndex(req, res) {
 }
 
 function userShow(req, res) {
+  console.log('users show');
   User.findOne((err, user) => {
     if (err) return res.status(500).json({ message: 'userShow is broken' });
     return res.status(200).json( { user });
