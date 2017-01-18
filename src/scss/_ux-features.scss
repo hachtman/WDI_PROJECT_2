@@ -1,14 +1,5 @@
-.start-options {
-  margin: 0 auto;
-  margin-top: 50px;
-  max-width: 740px;
-  .button-row {
-    margin-top: 46px;
-  }
-}
-.start-button {
-  background-color: #DDD;
-  font-size: 0.8em;
+.sub-options {
+  margin-right: 20px;
 }
 
 //Switch
@@ -77,4 +68,32 @@ input:checked + .slider:before {
   padding: 2px;
   margin-right: 10px;
   font-size: 2.2rem;
+}
+
+//buttons
+button {
+  font-size: 1.4rem;
+  color: #222;
+}
+.register {
+  color: #F00;
+  border-color: #F00;
+}
+.home-button {
+  float: left;
+  border-width: 0.2rem;
+  border-color: #FF2200;
+}
+
+.start-options {
+  margin: 0 auto;
+  margin-top: 50px;
+  max-width: 740px;
+  .button-row {
+    margin-top: 46px;
+  }
+}
+.start-button {
+  background-color: #DDD;
+  font-size: 0.8em;
 }
