@@ -20,6 +20,7 @@ App.init = function() {
   this.$main        = $('.main');
   this.$body        = $('body');
   this.gameType     = '';
+  this.mapType      = 0;
 
   this.userScore= [];
 
@@ -120,7 +121,7 @@ App.startOptions = function() {
     <div class="container start-options logged-out">
       <div class="row">
         <h1 class="title">want to get <strong>lost?</strong></h1>
-        <h3 class="subtitle">sign up below to play</h3>
+        <h3 class="subtitle">sign up above to play</h3>
       </div>
       <div class="row">
         <div class="four columns">
@@ -130,14 +131,13 @@ App.startOptions = function() {
           <button class="the-code">the code</button>
         </div>
         <div class="four columns">
-          <button class="coming-soon start-button">ways to play</button>
+          <button class="ways-to-play">ways to play</button>
         </div>
       </div>
     </div>
   `);
   }
 };
-
 //Draw line btween two markers.
 App.drawLineBetweenMarkers = function() {
   const resultsLine = new google.maps.PolyLine({
@@ -155,18 +155,23 @@ App.drawLineBetweenMarkers = function() {
 
 //Show the results markers.
 App.createResultsMarkers = function() {
+  const icon = {
+    grey: '../images/pin-red.png',
+    black: '../images/black-pin.png'
+  };
+
   const userLatLng = new google.maps.LatLng(App.guessCoords.lat, App.guessCoords.lng);
   const actLatLng = new google.maps.LatLng(App.coords.lat, App.coords.lng);
   const userMarker = new google.maps.Marker({
     position: userLatLng,
     map: App.resultsMap,
-    label: 'User',
+    icon: icon.grey,
     animation: google.maps.Animation.DROP
   });
   const actualMarker = new google.maps.Marker({
     position: actLatLng,
     map: App.resultsMap,
-    label: 'Actual',
+    icon: icon.black,
     animation: google.maps.Animation.DROP
   });
   console.log(userMarker, actualMarker);
@@ -205,6 +210,20 @@ App.createStatus = function() {
           </span>
         </div>
       </div>
+
+      <div class="row last-dist">
+        <div class="six columns">
+          <span class="status-info last-dist">
+            <p class="info-text">you were:</p>
+          </span>
+        </div>
+        <div class="six columns">
+          <span class="status-info last-dist">
+            <p class="info-text" id="lastDist"></p>
+          </span>
+        </div>
+      </div>
+
       <div class="row current-attempts">
         <div class="six columns">
           <span class="status-info current-attempts">
@@ -260,12 +279,15 @@ App.createStatus = function() {
 App.showStatus = function() {
   const av   = JSON.parse(localStorage.averageScore).toFixed(2);
   const last = JSON.parse(localStorage.lastScore).toFixed(2);
-  const high = JSON.parse(localStorage.highScore);
+  const dist = JSON.parse(localStorage.distance).toFixed(2);
+  console.log(dist);
+  // const high = JSON.parse(localStorage.highScore);
 
   $('#currentAttempts').html(`${localStorage.currentAttempts}`);
   $('#lastScore').html(last);
   $('#averageScore').html(`${av}`);
-  $('#highScore').html(`${high}`);
+  $('#lastDist').html(`${dist} m away.`);
+  // $('#highScore').html(`${high}`);
   App.$modal.fadeIn('fast');
   $('.close-status').on('click', function() {
     App.$modal.fadeOut('fast');
@@ -306,21 +328,327 @@ App.showResults = function() {
   let zoom     = 2;
   if (App.gameType === 'london') {
     position = { lat: 51.50194, lng: -0.1378 };
-    zoom = 8;
-  } else {
-    position = { lat: 0, lng: 0 };
+    zoom = 9;
   }
-
-  const resultsMapOptions = {
+  const cleanMapStyles  = [
+    {
+      'featureType': 'poi',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'hue': '#000000'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': -100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'poi',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'hue': '#000000'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': -100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'administrative',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'hue': '#000000'
+        },
+        {
+          'saturation': 0
+        },
+        {
+          'lightness': -100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'road',
+      'elementType': 'labels',
+      'stylers': [
+        {
+          'hue': '#ffffff'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': 100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'water',
+      'elementType': 'labels',
+      'stylers': [
+        {
+          'hue': '#000000'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': -100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'road.local',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'hue': '#ffffff'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': 100
+        },
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'water',
+      'elementType': 'geometry',
+      'stylers': [
+        {
+          'hue': '#ffffff'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': 100
+        },
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'transit',
+      'elementType': 'labels',
+      'stylers': [
+        {
+          'hue': '#000000'
+        },
+        {
+          'saturation': 0
+        },
+        {
+          'lightness': -100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'landscape',
+      'elementType': 'labels',
+      'stylers': [
+        {
+          'hue': '#000000'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': -100
+        },
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'road',
+      'elementType': 'geometry',
+      'stylers': [
+        {
+          'hue': '#bbbbbb'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': 26
+        },
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'landscape',
+      'elementType': 'geometry',
+      'stylers': [
+        {
+          'hue': '#dddddd'
+        },
+        {
+          'saturation': -100
+        },
+        {
+          'lightness': -3
+        },
+        {
+          'visibility': 'on'
+        }
+      ]
+    }
+  ];
+  const regMapStyles    = [
+    {
+      'featureType': 'all',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'all',
+      'elementType': 'labels',
+      'stylers': [
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'administrative',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'poi',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'visibility': 'off'
+        }
+      ]
+    },
+    {
+      'featureType': 'road',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'road',
+      'elementType': 'labels',
+      'stylers': [
+        {
+          'visibility': 'on'
+        }
+      ]
+    },
+    {
+      'featureType': 'road.local',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'weight': '5.91'
+        }
+      ]
+    },
+    {
+      'featureType': 'water',
+      'elementType': 'all',
+      'stylers': [
+        {
+          'visibility': 'on'
+        }
+      ]
+    }
+  ];
+  App.cleanMapOptions = {
     center: new google.maps.LatLng(position),
     zoom: zoom,
     mapTypeControl: true,
+    styles: cleanMapStyles,
     streetViewcontrol: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
-  App.resultsMap = new google.maps.Map(resultsMapCanvas, resultsMapOptions);
+  App.resultsMapOptions = {
+    center: new google.maps.LatLng(position),
+    zoom: zoom,
+    mapTypeControl: true,
+    styles: regMapStyles,
+    streetViewcontrol: true,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  App.resultsMap = new google.maps.Map(resultsMapCanvas, App.resultsMapOptions);
+
+
   App.createResultsMarkers();
   App.averageScore();
+//<p class ="grey-switch"><span class="grey-switch">grey out</span></p>
+  App.$main.prepend(`<label class="switch ">
+    <input type="checkbox">
+    <div class="slider round clean-map-switch"></div>
+  </label>`);
+  App.mapSwitch();
+};
+
+App.mapSwitch = function() {
+  $('.clean-map-switch').on('click', function() {
+    if (App.mapType % 2 === 0) {
+      console.log(App.mapType, 'i executed');
+      App.mapType ++;
+      App.resultsMap.setOptions({options: App.cleanMapOptions});
+    } else {
+      App.mapType ++;
+      App.regularMap();
+    }
+  });
+};
+
+App.regularMap = function() {
+  console.log('Im executing');
+  App.resultsMap.setOptions({options: App.resultsMapOptions});
 };
 
 App.averageScore = function() {
@@ -379,6 +707,7 @@ App.haversineDist = function() {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const dist = earthRadius * c;
   console.log(dist);
+  localStorage.distance = JSON.stringify(dist);
   return dist; //In meters.
 };
 
@@ -594,12 +923,6 @@ App.register = function(e) {
               <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">
             </div>
             <div class="row">
-              <div class="column">
-                <label for="hometown">Hometown (Optional)</label>
-                <input name="user[hometown]" class="u-full-width" typ="text" placeholder="hometown">
-              </div>
-            </div>
-            <div class="row">
             <div class="six columns">
               <button class="submit" type="submit" value="Register">Register</button>
             </div>
@@ -619,16 +942,17 @@ App.writeSessionVars = function(data) {
   localStorage.username      = data.user.username;
   localStorage.currentUser   = data.user.email;
   console.log(data.user.highScore);
-  if (data.user.highScore === 'undefined') {
-    localStorage.userHighScore = 0;
-  } else {
-    localStorage.userHighScore = data.user.highScore;
-  }
-  if (data.user.hometown === 'undefined') {
-    localStorage.hometown = 'Knoxville, Tennessee';
-  } else {
-    localStorage.hometown      = data.user.hometown;
-  }
+  // if (typeof data.user.highScore === 'undefined') {
+  //   localStorage.userHighScore = '0';
+  // } else {
+  //   localStorage.userHighScore = data.user.highScore;
+  // }
+  // if (typeof data.user.hometown === 'undefined') {
+  //   localStorage.hometown = 'Knoxville, Tennessee';
+  // } else {
+  //   localStorage.hometown      = data.user.hometown;
+  // }
+  localStorage.highScore       = '0';
   localStorage.averageScore    = '0';
   localStorage.lastScore       = '0';
   localStorage.currentAttempts = '0';

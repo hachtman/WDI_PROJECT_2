@@ -1,4 +1,7 @@
+
+
 .register-form {
+  padding: 10px;
   margin: 0 auto;
   background-color: #FFF;
   width: 640px;
@@ -8,6 +11,7 @@
 }
 
 .login-form {
+  padding: 10px;
   margin: 0 auto;
   background-color: #FFF;
   width: 640px;
@@ -34,6 +38,7 @@
   position: absolute;
   text-align: center;
   margin: 0 auto;
+  margin-top: 5rem;
   -webkit-box-shadow: -1px 2px 10px 1px rgba(0,0,0,0.58);
   -moz-box-shadow: -1px 2px 10px 1px rgba(0,0,0,0.58);
   box-shadow: -1px 2px 10px 1px rgba(0,0,0,0.58);

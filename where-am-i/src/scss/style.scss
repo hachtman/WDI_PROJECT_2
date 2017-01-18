@@ -5,10 +5,10 @@
 
 body {
    background-color: #FDFDFF;
-   color: #444;
+   color: #333;
    text-align: center;
-   margin: 20px;
-   padding: 10px;
+   margin: 0;
+   padding: 0;
 }
 .dim {
   background: linear-gradient(
@@ -17,8 +17,27 @@ body {
    rgba(0, 0, 0, 0.4)
  ),
 }
+
+//Generic
+h1, h2, h3 {
+  font-family: Raleway, sans-serif;
+}
+
+h1 {
+  font-size: 6rem;
+}
+
+.subtitle {
+  padding-bottom: 20px;
+}
+
+.about .the-code .ways-to-play {
+  font-size: 6rem;
+}
+
 //Maps
 main {
+
     .street-view-canvas {
       height: 80vh;
       max-width: 960%;
@@ -59,6 +78,14 @@ main {
 }
 
 //buttons
-.register-main {
-  font-size: 1.5em;
+button {
+  font-size: 1.4rem;
+  color: #222;
+}
+.register {
+  color: #F00;
+  border-color: #F00;
+}
+.home-button {
+  float: left;
 }

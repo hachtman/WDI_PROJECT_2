@@ -22,6 +22,7 @@ App.init = function () {
   this.$main = $('.main');
   this.$body = $('body');
   this.gameType = '';
+  this.mapType = 0;
 
   this.userScore = [];
 
@@ -94,10 +95,9 @@ App.startOptions = function () {
       }
     });
   } else {
-    App.$main.html('\n    <div class="container start-options logged-out">\n      <div class="row">\n        <h1 class="title">want to get <strong>lost?</strong></h1>\n        <h3 class="subtitle">sign up below to play</h3>\n      </div>\n      <div class="row">\n        <div class="four columns">\n          <button class="about">about</button>\n        </div>\n        <div class="four columns">\n          <button class="the-code">the code</button>\n        </div>\n        <div class="four columns">\n          <button class="coming-soon start-button">ways to play</button>\n        </div>\n      </div>\n    </div>\n  ');
+    App.$main.html('\n    <div class="container start-options logged-out">\n      <div class="row">\n        <h1 class="title">want to get <strong>lost?</strong></h1>\n        <h3 class="subtitle">sign up above to play</h3>\n      </div>\n      <div class="row">\n        <div class="four columns">\n          <button class="about">about</button>\n        </div>\n        <div class="four columns">\n          <button class="the-code">the code</button>\n        </div>\n        <div class="four columns">\n          <button class="ways-to-play">ways to play</button>\n        </div>\n      </div>\n    </div>\n  ');
   }
 };
-
 //Draw line btween two markers.
 App.drawLineBetweenMarkers = function () {
   var resultsLine = new google.maps.PolyLine({
@@ -111,18 +111,23 @@ App.drawLineBetweenMarkers = function () {
 
 //Show the results markers.
 App.createResultsMarkers = function () {
+  var icon = {
+    grey: '../images/pin-red.png',
+    black: '../images/black-pin.png'
+  };
+
   var userLatLng = new google.maps.LatLng(App.guessCoords.lat, App.guessCoords.lng);
   var actLatLng = new google.maps.LatLng(App.coords.lat, App.coords.lng);
   var userMarker = new google.maps.Marker({
     position: userLatLng,
     map: App.resultsMap,
-    label: 'User',
+    icon: icon.grey,
     animation: google.maps.Animation.DROP
   });
   var actualMarker = new google.maps.Marker({
     position: actLatLng,
     map: App.resultsMap,
-    label: 'Actual',
+    icon: icon.black,
     animation: google.maps.Animation.DROP
   });
   console.log(userMarker, actualMarker);
@@ -137,18 +142,21 @@ App.createStatus = function () {
   App.$modal.empty();
   // this.$body.append('<div class="logged-in status-modal"></div>');
   App.$modal.hide();
-  App.$modal.append('\n    <div class="container">\n\n      <div class="row">\n        <div class="eight columns">\n          <h3>status: <strong>' + localStorage.username + '</strong></h3>\n        </div>\n        <div class="four columns">\n          <button class="scoring-info" type="button">i\'m stuck</button>\n        </div>\n      </div>\n\n      <div class="row last-score">\n        <div class="six columns">\n          <span class="status-info last-score">\n            <p class="info-text">last score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info last-score">\n            <p class="info-text" id="lastScore"></p>\n          </span>\n        </div>\n      </div>\n      <div class="row current-attempts">\n        <div class="six columns">\n          <span class="status-info current-attempts">\n            <p class="info-text">current attempts:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info current-attempts">\n            <p class="info-text" id="currentAttempts"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row average-score">\n        <div class="six columns">\n          <span class="status-info average-score">\n            <p class="info-text">average score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info average-score">\n            <p class="info-text" id="averageScore"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row high-score">\n        <div class="six columns">\n          <span class="status-info high-score">\n            <p class="info-text">high score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info high-score">\n            <p class="info-text" id="highScore"></p>\n          </span>\n        </div>\n      </div>\n\n\n      <div class="row status-button-row">\n        <div class="six columns">\n          <button class="close-status" type="button">close</button>\n        </div>\n        <div class="six columns">\n          <button class="next-game">next round</button>\n        </div>\n      </div>\n    </div>\n  ');
+  App.$modal.append('\n    <div class="container">\n\n      <div class="row">\n        <div class="eight columns">\n          <h3>status: <strong>' + localStorage.username + '</strong></h3>\n        </div>\n        <div class="four columns">\n          <button class="scoring-info" type="button">i\'m stuck</button>\n        </div>\n      </div>\n\n      <div class="row last-score">\n        <div class="six columns">\n          <span class="status-info last-score">\n            <p class="info-text">last score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info last-score">\n            <p class="info-text" id="lastScore"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row last-dist">\n        <div class="six columns">\n          <span class="status-info last-dist">\n            <p class="info-text">you were:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info last-dist">\n            <p class="info-text" id="lastDist"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row current-attempts">\n        <div class="six columns">\n          <span class="status-info current-attempts">\n            <p class="info-text">current attempts:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info current-attempts">\n            <p class="info-text" id="currentAttempts"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row average-score">\n        <div class="six columns">\n          <span class="status-info average-score">\n            <p class="info-text">average score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info average-score">\n            <p class="info-text" id="averageScore"></p>\n          </span>\n        </div>\n      </div>\n\n      <div class="row high-score">\n        <div class="six columns">\n          <span class="status-info high-score">\n            <p class="info-text">high score:</p>\n          </span>\n        </div>\n        <div class="six columns">\n          <span class="status-info high-score">\n            <p class="info-text" id="highScore"></p>\n          </span>\n        </div>\n      </div>\n\n\n      <div class="row status-button-row">\n        <div class="six columns">\n          <button class="close-status" type="button">close</button>\n        </div>\n        <div class="six columns">\n          <button class="next-game">next round</button>\n        </div>\n      </div>\n    </div>\n  ');
 };
 
 App.showStatus = function () {
   var av = JSON.parse(localStorage.averageScore).toFixed(2);
   var last = JSON.parse(localStorage.lastScore).toFixed(2);
-  var high = JSON.parse(localStorage.highScore);
+  var dist = JSON.parse(localStorage.distance).toFixed(2);
+  console.log(dist);
+  // const high = JSON.parse(localStorage.highScore);
 
   $('#currentAttempts').html('' + localStorage.currentAttempts);
   $('#lastScore').html(last);
   $('#averageScore').html('' + av);
-  $('#highScore').html('' + high);
+  $('#lastDist').html(dist + ' m away.');
+  // $('#highScore').html(`${high}`);
   App.$modal.fadeIn('fast');
   $('.close-status').on('click', function () {
     App.$modal.fadeOut('fast');
@@ -189,21 +197,231 @@ App.showResults = function () {
   var zoom = 2;
   if (App.gameType === 'london') {
     position = { lat: 51.50194, lng: -0.1378 };
-    zoom = 8;
-  } else {
-    position = { lat: 0, lng: 0 };
+    zoom = 9;
   }
-
-  var resultsMapOptions = {
+  var cleanMapStyles = [{
+    'featureType': 'poi',
+    'elementType': 'all',
+    'stylers': [{
+      'hue': '#000000'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': -100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'poi',
+    'elementType': 'all',
+    'stylers': [{
+      'hue': '#000000'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': -100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'administrative',
+    'elementType': 'all',
+    'stylers': [{
+      'hue': '#000000'
+    }, {
+      'saturation': 0
+    }, {
+      'lightness': -100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'road',
+    'elementType': 'labels',
+    'stylers': [{
+      'hue': '#ffffff'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': 100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'water',
+    'elementType': 'labels',
+    'stylers': [{
+      'hue': '#000000'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': -100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'road.local',
+    'elementType': 'all',
+    'stylers': [{
+      'hue': '#ffffff'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': 100
+    }, {
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'water',
+    'elementType': 'geometry',
+    'stylers': [{
+      'hue': '#ffffff'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': 100
+    }, {
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'transit',
+    'elementType': 'labels',
+    'stylers': [{
+      'hue': '#000000'
+    }, {
+      'saturation': 0
+    }, {
+      'lightness': -100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'landscape',
+    'elementType': 'labels',
+    'stylers': [{
+      'hue': '#000000'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': -100
+    }, {
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'road',
+    'elementType': 'geometry',
+    'stylers': [{
+      'hue': '#bbbbbb'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': 26
+    }, {
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'landscape',
+    'elementType': 'geometry',
+    'stylers': [{
+      'hue': '#dddddd'
+    }, {
+      'saturation': -100
+    }, {
+      'lightness': -3
+    }, {
+      'visibility': 'on'
+    }]
+  }];
+  var regMapStyles = [{
+    'featureType': 'all',
+    'elementType': 'all',
+    'stylers': [{
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'all',
+    'elementType': 'labels',
+    'stylers': [{
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'administrative',
+    'elementType': 'all',
+    'stylers': [{
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'poi',
+    'elementType': 'all',
+    'stylers': [{
+      'visibility': 'off'
+    }]
+  }, {
+    'featureType': 'road',
+    'elementType': 'all',
+    'stylers': [{
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'road',
+    'elementType': 'labels',
+    'stylers': [{
+      'visibility': 'on'
+    }]
+  }, {
+    'featureType': 'road.local',
+    'elementType': 'all',
+    'stylers': [{
+      'weight': '5.91'
+    }]
+  }, {
+    'featureType': 'water',
+    'elementType': 'all',
+    'stylers': [{
+      'visibility': 'on'
+    }]
+  }];
+  App.cleanMapOptions = {
     center: new google.maps.LatLng(position),
     zoom: zoom,
     mapTypeControl: true,
+    styles: cleanMapStyles,
     streetViewcontrol: true,
     mapTypeId: google.maps.MapTypeId.ROADMAP
   };
-  App.resultsMap = new google.maps.Map(resultsMapCanvas, resultsMapOptions);
+  App.resultsMapOptions = {
+    center: new google.maps.LatLng(position),
+    zoom: zoom,
+    mapTypeControl: true,
+    styles: regMapStyles,
+    streetViewcontrol: true,
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  };
+  App.resultsMap = new google.maps.Map(resultsMapCanvas, App.resultsMapOptions);
+
   App.createResultsMarkers();
   App.averageScore();
+  //<p class ="grey-switch"><span class="grey-switch">grey out</span></p>
+  App.$main.prepend('<label class="switch ">\n    <input type="checkbox">\n    <div class="slider round clean-map-switch"></div>\n  </label>');
+  App.mapSwitch();
+};
+
+App.mapSwitch = function () {
+  $('.clean-map-switch').on('click', function () {
+    if (App.mapType % 2 === 0) {
+      console.log(App.mapType, 'i executed');
+      App.mapType++;
+      App.resultsMap.setOptions({ options: App.cleanMapOptions });
+    } else {
+      App.mapType++;
+      App.regularMap();
+    }
+  });
+};
+
+App.regularMap = function () {
+  console.log('Im executing');
+  App.resultsMap.setOptions({ options: App.resultsMapOptions });
 };
 
 App.averageScore = function () {
@@ -264,6 +482,7 @@ App.haversineDist = function () {
   var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   var dist = earthRadius * c;
   console.log(dist);
+  localStorage.distance = JSON.stringify(dist);
   return dist; //In meters.
 };
 
@@ -431,7 +650,7 @@ App.register = function (e) {
   if (e) e.preventDefault();
   this.$main.html('<div class="logged-out register-form"></div>');
   $('.register-form').hide();
-  $('.register-form').append('\n        <h3>Register</h3>\n        <form method="post" action="/register">\n        <div class="container">\n          <div class="row">\n            <label for="username">Username</label>\n            <input name="user[username]" class="u-full-width" type="text" placeholder="username" id="username">\n          </div>\n          <div class="row">\n            <label for="email">Email</label>\n            <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n          </div>\n          <div class="row">\n            <div class="six columns">\n              <label for="password">Password</label>\n              <input name="user[password]" class="u-full-width" type="password" placeholder="email" id="password">\n            </div>\n            <div class="six columns">\n              <label for="passwordConfirmation">Password Confirmation</label>\n              <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">\n            </div>\n            <div class="row">\n              <div class="column">\n                <label for="hometown">Hometown (Optional)</label>\n                <input name="user[hometown]" class="u-full-width" typ="text" placeholder="hometown">\n              </div>\n            </div>\n            <div class="row">\n            <div class="six columns">\n              <button class="submit" type="submit" value="Register">Register</button>\n            </div>\n            <div class="six columns">\n              <span class="close"><button type="button" class="close">close</button></close>\n            </div class="six columns">\n          </div>\n        </form>\n    ');
+  $('.register-form').append('\n        <h3>Register</h3>\n        <form method="post" action="/register">\n        <div class="container">\n          <div class="row">\n            <label for="username">Username</label>\n            <input name="user[username]" class="u-full-width" type="text" placeholder="username" id="username">\n          </div>\n          <div class="row">\n            <label for="email">Email</label>\n            <input name="user[email]" class="u-full-width" type="text" placeholder="email" id="email">\n          </div>\n          <div class="row">\n            <div class="six columns">\n              <label for="password">Password</label>\n              <input name="user[password]" class="u-full-width" type="password" placeholder="email" id="password">\n            </div>\n            <div class="six columns">\n              <label for="passwordConfirmation">Password Confirmation</label>\n              <input name="user[password2]" class="u-full-width" type="password" placeholder="email" id="passwordConfirmation">\n            </div>\n            <div class="row">\n            <div class="six columns">\n              <button class="submit" type="submit" value="Register">Register</button>\n            </div>\n            <div class="six columns">\n              <span class="close"><button type="button" class="close">close</button></close>\n            </div class="six columns">\n          </div>\n        </form>\n    ');
   // $('body').toggleClass('dim');
   $('.register-form').fadeIn('fast');
   $('.close').on('click', this.closeModals);
@@ -442,16 +661,17 @@ App.writeSessionVars = function (data) {
   localStorage.username = data.user.username;
   localStorage.currentUser = data.user.email;
   console.log(data.user.highScore);
-  if (data.user.highScore === 'undefined') {
-    localStorage.userHighScore = 0;
-  } else {
-    localStorage.userHighScore = data.user.highScore;
-  }
-  if (data.user.hometown === 'undefined') {
-    localStorage.hometown = 'Knoxville, Tennessee';
-  } else {
-    localStorage.hometown = data.user.hometown;
-  }
+  // if (typeof data.user.highScore === 'undefined') {
+  //   localStorage.userHighScore = '0';
+  // } else {
+  //   localStorage.userHighScore = data.user.highScore;
+  // }
+  // if (typeof data.user.hometown === 'undefined') {
+  //   localStorage.hometown = 'Knoxville, Tennessee';
+  // } else {
+  //   localStorage.hometown      = data.user.hometown;
+  // }
+  localStorage.highScore = '0';
   localStorage.averageScore = '0';
   localStorage.lastScore = '0';
   localStorage.currentAttempts = '0';
