@@ -3,14 +3,14 @@ const babel       = require('gulp-babel');
 const sass        = require('gulp-sass');
 const nodemon     = require('gulp-nodemon');
 const cleanCSS 	  = require('gulp-clean-css');
-// const uglify      = require('gulp-uglify');
+const uglify      = require('gulp-uglify');
 const imagemin    = require('gulp-imagemin');
 const browserSync = require('browser-sync').create();
 
 gulp.task('es6', () => {
   return gulp.src('src/js/*.js')
   .pipe(babel({ presets: ['es2015'] }))
-  // .pipe(uglify())
+  .pipe(uglify())
   .pipe(gulp.dest('public/js'));
 });
 

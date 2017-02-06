@@ -16,7 +16,5 @@ router.route('/register').post(auth.reg);
 
 router.route('/login').post(auth.log);
 
-
-
 //exports the router
 module.exports = router;

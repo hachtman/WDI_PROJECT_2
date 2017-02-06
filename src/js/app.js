@@ -42,9 +42,6 @@ App.init = function() {
 
   $('body').on('submit', 'form', this.handleForm);
 
-  //LocalStorage Variables
-
-
   //Coords.
   this.coords       = {};
   this.guessCoords  = {};
@@ -107,7 +104,7 @@ App.startOptions = function() {
         App.$main.html('');
         App.createStreetViewMap();
         App.createMinimap();
-        App.findNearestPanorama(App.randomCoordsEurope());
+        App.findNearestPanorama(App.randomCoordsWorld());
       } else if (this.classList.contains('london')) {
         App.gameType = 'london';
         App.$main.html('');
@@ -296,6 +293,7 @@ App.showStatus = function() {
 
 App.nextGame = function() {
   App.next.hide();
+  App.$modal.fadeOut('fast');
   if (App.gameType === '') {
     $('body').css({ 'background-image': 'none' });
     App.$main.html('');
@@ -625,7 +623,7 @@ App.showResults = function() {
 
   App.createResultsMarkers();
   App.averageScore();
-//<p class ="grey-switch"><span class="grey-switch">grey out</span></p>
+
   App.$main.prepend(`<label class="switch ">
     <input type="checkbox">
     <div class="slider round clean-map-switch"></div>
@@ -711,6 +709,12 @@ App.haversineDist = function() {
   return dist; //In meters.
 };
 
+App.updateCurrentAttempts = function() {
+  let attmps = JSON.parse(localStorage.currentAttempts);
+  attmps++;
+  attmps = JSON.stringify(attmps);
+  localStorage.currentAttempts = attmps;
+};
 //Add click listener.
 App.addMiniMapEventListener = function() {
   App.minimap.addListener('click', function(e) {
@@ -719,6 +723,7 @@ App.addMiniMapEventListener = function() {
     // App.guessCoords = 'latlng=' + lat +', ' + lng;
     App.guessCoords = {lat: lat, lng: lng};
     console.log(App.guessCoords);
+    App.updateCurrentAttempts();
     App.calcScore(App.haversineDist());
   });
 };
@@ -956,6 +961,7 @@ App.writeSessionVars = function(data) {
   localStorage.averageScore    = '0';
   localStorage.lastScore       = '0';
   localStorage.currentAttempts = '0';
+  localStorage.distance        = '0';
 };
 
 App.handleForm = function(e) {
