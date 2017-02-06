@@ -10,6 +10,8 @@ const cors       = require('cors');
 
 //Invoke an instance of express
 const app = express();
+app.use(express.static(`${__dirname}/public`));
+app.use(express.static(`${__dirname}/bower_components`));
 
 //Require external files.
 const config    = require('./config/config');
@@ -17,8 +19,6 @@ const apiRoutes = require('./config/apiRoutes');
 const webRoutes = require('./config/webRouter');
 
 //Middleware
-app.use(express.static(`${__dirname}/public`));
-app.use(express.static(`${__dirname}/bower_components`));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(morgan('dev'));
