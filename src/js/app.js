@@ -14,15 +14,15 @@ App.resultsMap = {};
 //The initiliase function.
 App.init = function() {
   //Generic Variables
-  this.apiUrl       = 'http://localhost:3000/api';
-  this.apiKey       = 'AIzaSyAS7TL1XkRnMQmOFFOuCMXZOQywapszR7A';
+  this.apiUrl   = 'window.location.origin/api';
+  this.apiKey   = 'AIzaSyAS7TL1XkRnMQmOFFOuCMXZOQywapszR7A';
 
-  this.$main        = $('.main');
-  this.$body        = $('body');
-  this.gameType     = '';
-  this.mapType      = 0;
+  this.$main    = $('.main');
+  this.$body    = $('body');
+  this.gameType = '';
+  this.mapType  = 0;
 
-  this.userScore= [];
+  this.userScore = [];
 
   //Login/logout control flow.
   this.$registerBtn = $('.register');
@@ -147,7 +147,6 @@ App.drawLineBetweenMarkers = function() {
     strokeOpacity: 0.8,
     strokeWeight: 8
   });
-
 };
 
 //Show the results markers.
